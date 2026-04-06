@@ -17,6 +17,10 @@ const newsSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  image: {
+    type: String, // store image URL or path
+    required: false, // 🔥 image is now optional
+  },
   isActive: {
     type: Boolean,
     default: true,
