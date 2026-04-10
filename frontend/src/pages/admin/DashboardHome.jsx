@@ -1,10 +1,8 @@
 function DashboardHome() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Welcome Admin 👋</h1>
-      <p className="mt-2 text-gray-600">
-        Manage news, staff, and programs from here.
-      </p>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold text-primary">Welcome Admin 👋</h1>
+      <p className="text-gray-700 mt-2">Manage your website contents from here.</p>
     </div>
   );
 }

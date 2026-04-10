@@ -1,4 +1,6 @@
+// src/layouts/AboutLayout.jsx
 import PageLayout from "./PageLayout";
+import { Outlet } from "react-router-dom";
 
 function AboutLayout() {
   const sidebarItems = [
@@ -9,10 +11,9 @@ function AboutLayout() {
   ];
 
   return (
-    <PageLayout
-      title="About Us"
-      sidebarItems={sidebarItems}
-    />
+    <PageLayout title="About Us" sidebarItems={sidebarItems}>
+      <Outlet /> {/* <-- About pages (Staff, Background...) will render here */}
+    </PageLayout>
   );
 }
 

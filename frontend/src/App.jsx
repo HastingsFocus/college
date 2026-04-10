@@ -1,3 +1,4 @@
+
 // src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -13,12 +14,22 @@ import PageLayout from "./layouts/PageLayout";
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
 
+// 🆕 Public News Pages
+import News from "./pages/News";
+import PublicNewsDetails from "./pages/PublicNewsDetails";
+
 // 🔐 Auth Pages
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 
 // 🛠️ Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
+
+// Admin Nested Pages
+import ManageNews from "./pages/admin/ManageNews";
+import ManageStaff from "./pages/admin/ManageStaff";
+import ManagePrograms from "./pages/admin/ManagePrograms";
+import NewsDetails from "./pages/admin/NewsDetails";
 
 // About Pages
 import Background from "./pages/about/Background";
@@ -56,25 +67,34 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* 🔐 AUTH ROUTES (OUTSIDE MAIN LAYOUT) */}
+        {/* 🔐 AUTH ROUTES */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
         {/* 🔒 ADMIN ROUTE (PROTECTED) */}
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <PrivateRoute>
               <AdminDashboard />
             </PrivateRoute>
           }
-        />
+        >
+          <Route path="manage-news" element={<ManageNews />} />
+          <Route path="news/:id" element={<NewsDetails />} />
+          <Route path="manage-staff" element={<ManageStaff />} />
+          <Route path="manage-programs" element={<ManagePrograms />} />
+        </Route>
 
         {/* 🌍 MAIN WEBSITE */}
         <Route path="/" element={<MainLayout />}>
 
           {/* 🏠 HOME */}
           <Route index element={<Home />} />
+
+          {/* 🆕 NEWS (PUBLIC) */}
+          <Route path="news" element={<News />} />
+          <Route path="news/:id" element={<PublicNewsDetails />} />
 
           {/* 📞 CONTACT */}
           <Route path="contact" element={<Contact />} />

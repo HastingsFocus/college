@@ -1,49 +1,49 @@
 import { useState } from "react";
 import API from "../../services/api";
 
-function AddStaff() {
+function ManageProgram() {
   const [name, setName] = useState("");
-  const [position, setPosition] = useState("");
+  const [description, setDescription] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      await API.post("/staff", { name, position });
-      alert("Staff added!");
+      await API.post("/programs", { name, description });
+      alert("Program added!");
       setName("");
-      setPosition("");
+      setDescription("");
     } catch (err) {
       console.error(err);
-      alert("Error adding staff");
+      alert("Error adding program");
     }
   };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Add Staff</h2>
+      <h2 className="text-2xl font-bold mb-4">Add Program</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           className="w-full p-2 border rounded"
-          placeholder="Name"
+          placeholder="Program Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <input
+        <textarea
           className="w-full p-2 border rounded"
-          placeholder="Position"
-          value={position}
-          onChange={(e) => setPosition(e.target.value)}
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
         />
 
-        <button className="bg-green-500 text-white px-4 py-2 rounded">
-          Add Staff
+        <button className="bg-purple-500 text-white px-4 py-2 rounded">
+          Manage Program
         </button>
       </form>
     </div>
   );
 }
 
-export default AddStaff;
+export default ManageProgram;
