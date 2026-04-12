@@ -13,24 +13,25 @@ function PageLayout({ title, sidebarItems }) {
 
         {/* 🧭 SIDEBAR */}
         <div className="md:w-1/4 bg-white shadow-md p-4">
-          <ul className="space-y-2">
-            {sidebarItems.map((item, index) => (
-              <li key={index}>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `block px-4 py-2 rounded transition ${
-                      isActive
-                        ? "bg-accent text-white font-semibold"
-                        : "hover:bg-gray-200"
-                    }`
-                  }
-                >
-                  {item.name}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+         <ul className="space-y-2">
+  {sidebarItems.map((item, index) => (
+    <li key={index}>
+      <NavLink
+        to={item.path}
+        end={item.path === "/library"} // 🔥 FIX
+        className={({ isActive }) =>
+          `block px-4 py-2 rounded transition ${
+            isActive
+              ? "bg-accent text-white font-semibold"
+              : "hover:bg-gray-200"
+          }`
+        }
+      >
+        {item.name} {/* 🔥 THIS WAS MISSING */}
+      </NavLink>
+    </li>
+  ))}
+</ul>
         </div>
 
         {/* 📄 CONTENT */}

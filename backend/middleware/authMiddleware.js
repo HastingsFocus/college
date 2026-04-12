@@ -1,33 +1,46 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const jwt = require("jsonwebtoken");
+const Admin = require("../models/Admin");
 
-const protect = async (req, res, next) => {
+const protectAdmin = async (req, res, next) => {
   let token;
 
-  // Check if authorization header exists and starts with "Bearer"
-  if (req.headers.authorization?.startsWith('Bearer')) {
+  // 1. Check Authorization header
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
     try {
-      // Get token from header
-      token = req.headers.authorization.split(' ')[1];
+      // 2. Extract token
+      token = req.headers.authorization.split(" ")[1];
 
-      // Verify token
+      // 3. Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Attach user to request (exclude password)
-      req.user = await User.findById(decoded.id).select('-password');
+      // 🔥 DEBUG LOG 1 (ADD HERE)
+      console.log("DECODED TOKEN:", decoded);
 
-      // Move to next middleware or route handler
+      // 4. Get admin from DB
+      const admin = await Admin.findById(decoded.id).select("-password");
+
+      // 🔥 DEBUG LOG 2 (ADD HERE)
+      console.log("REQ.ADMIN:", admin);
+
+      if (!admin) {
+        return res.status(401).json({ message: "Admin not found" });
+      }
+
+      // 5. Attach admin to request
+      req.admin = admin;
+
       return next();
     } catch (error) {
-      console.error(error);
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+      console.log(error);
+      return res.status(401).json({ message: "Token failed / not authorized" });
     }
   }
 
-  // If no token
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
+  // 6. No token found
+  return res.status(401).json({ message: "No token, access denied" });
 };
 
-module.exports = protect;
+module.exports = protectAdmin;

@@ -1,16 +1,8 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const cors = require('cors');
-
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const programRoutes = require('./routes/programRoutes');
-const newsRoutes = require('./routes/newsRoutes');
-const pageRoutes = require('./routes/pageRoutes');
-const departmentRoutes = require('./routes/departmentRoutes');
-const staffRoutes = require('./routes/staffRoutes');
-const path = require('path');
+const express = require("express");
+const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const path = require("path");
 
 dotenv.config();
 
@@ -20,34 +12,43 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Routes
+const adminRoutes = require("./routes/adminRoutes");
+const programRoutes = require("./routes/programRoutes");
+const newsRoutes = require("./routes/newsRoutes");
+const pageRoutes = require("./routes/pageRoutes");
+const departmentRoutes = require("./routes/departmentRoutes");
+const staffRoutes = require("./routes/staffRoutes");
+
 // Test route
-app.get('/', (req, res) => {
-  res.send('API is running 🚀');
+app.get("/", (req, res) => {
+  res.send("API is running 🚀");
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/programs', programRoutes);
-app.use('/api/news', newsRoutes);
-app.use('/api/pages', pageRoutes);
-app.use('/api/departments', departmentRoutes);
-app.use('/api/staff', staffRoutes);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve uploaded images
+// API Routes
+app.use("/api/admin", adminRoutes);
+app.use("/api/programs", programRoutes);
+app.use("/api/news", newsRoutes);
+app.use("/api/pages", pageRoutes);
+app.use("/api/departments", departmentRoutes);
+app.use("/api/staff", staffRoutes);
 
-// Connect to MongoDB & start server
+// Static uploads
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Connect DB + start server
 const startServer = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB connected ✅');
+    console.log("MongoDB connected ✅");
 
     const PORT = process.env.PORT || 5000;
 
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT} `);
+      console.log(`Server running on port ${PORT} 🚀`);
     });
-
   } catch (error) {
-    console.error('Database connection failed ❌', error);
+    console.error("Database connection failed ❌", error);
     process.exit(1);
   }
 };

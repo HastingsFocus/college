@@ -1,8 +1,7 @@
-
 // src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// 🔐 Auth & Protection
+// 🔐 Protection
 import PrivateRoute from "./routes/PrivateRoute";
 
 // Layouts
@@ -18,14 +17,11 @@ import Contact from "./pages/Contact";
 import News from "./pages/News";
 import PublicNewsDetails from "./pages/PublicNewsDetails";
 
-// 🔐 Auth Pages
-import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
-
-// 🛠️ Admin
+// 🛠️ ADMIN AUTH + DASHBOARD
+import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
-// Admin Nested Pages
+// Admin Pages
 import ManageNews from "./pages/admin/ManageNews";
 import ManageStaff from "./pages/admin/ManageStaff";
 import ManagePrograms from "./pages/admin/ManagePrograms";
@@ -67,11 +63,10 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* 🔐 AUTH ROUTES */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* 🔐 ADMIN LOGIN */}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* 🔒 ADMIN ROUTE (PROTECTED) */}
+        {/* 🔒 ADMIN PROTECTED ROUTES */}
         <Route
           path="/admin/*"
           element={
@@ -92,7 +87,7 @@ function App() {
           {/* 🏠 HOME */}
           <Route index element={<Home />} />
 
-          {/* 🆕 NEWS (PUBLIC) */}
+          {/* 🆕 NEWS */}
           <Route path="news" element={<News />} />
           <Route path="news/:id" element={<PublicNewsDetails />} />
 

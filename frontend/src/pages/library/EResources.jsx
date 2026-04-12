@@ -11,14 +11,7 @@ function EResources() {
         E-Resources at St. Joseph College of Health Sciences
       </h2>
 
-      {/* 🖼 HERO IMAGE */}
-      <div className="mb-8">
-        <img
-          src={EResourcesImage}
-          alt="E-Resources"
-          className="w-full h-72 md:h-96 object-cover rounded-xl shadow-lg"
-        />
-      </div>
+      
 
       {/* 📝 INTRODUCTION */}
       <p className="text-gray-700 leading-relaxed mb-6">
