@@ -9,15 +9,19 @@ function ManageNews() {
   const [form, setForm] = useState({ title: "", content: "" });
   const [file, setFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch news
+  // ================= FETCH NEWS =================
   const fetchNews = async () => {
     try {
+      setLoading(true);
       const res = await API.get("/news");
       setNews(res.data);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch news");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -25,18 +29,17 @@ function ManageNews() {
     fetchNews();
   }, []);
 
-  // Input change
+  // ================= INPUT =================
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // File change
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  // Submit
+  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -51,20 +54,16 @@ function ManageNews() {
     if (file) formData.append("image", file);
 
     try {
+      setLoading(true);
+
       if (editingId) {
         await API.put(`/news/${editingId}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success("News updated successfully");
       } else {
         await API.post("/news", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success("News added successfully");
       }
@@ -76,31 +75,28 @@ function ManageNews() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to save news");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Edit
+  // ================= EDIT =================
   const handleEdit = (item) => {
     setForm({ title: item.title, content: item.content });
     setFile(null);
     setEditingId(item._id);
   };
 
-  // Delete
+  // ================= DELETE =================
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this news?")) return;
 
     try {
-      await API.delete(`/news/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
+      await API.delete(`/news/${id}`);
       toast.success("Deleted successfully");
       fetchNews();
     } catch (err) {
-      console.error("DELETE ERROR:", err.response?.data || err.message);
+      console.error(err);
       toast.error("Failed to delete");
     }
   };
@@ -140,73 +136,81 @@ function ManageNews() {
         />
 
         <button
+          disabled={loading}
           type="submit"
-          className="bg-primary text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+          className="bg-primary text-white px-4 py-2 rounded hover:bg-blue-600 transition disabled:opacity-50"
         >
-          {editingId ? "Update News" : "Add News"}
+          {loading
+            ? "Processing..."
+            : editingId
+            ? "Update News"
+            : "Add News"}
         </button>
       </form>
 
       {/* NEWS LIST */}
       <h2 className="text-xl font-bold mb-4">All News</h2>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {news.map((item) => (
-          <div
-            key={item._id}
-            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
-          >
-            {/* IMAGE (CLOUDINARY FIX 🔥) */}
-            {item.image && (
-              <img
-                src={item.image}   // ✅ DIRECT CLOUDINARY URL
-                alt={item.title}
-                className="w-full h-48 object-cover"
-              />
-            )}
+      {loading && news.length === 0 ? (
+        <p>Loading news...</p>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {news.map((item) => (
+            <div
+              key={item._id}
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
+            >
+              {/* IMAGE */}
+              {item.image && (
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-48 object-cover"
+                />
+              )}
 
-            {/* CONTENT */}
-            <div className="p-4">
-              <h3 className="font-bold text-lg text-darkText">
-                {item.title}
-              </h3>
+              {/* CONTENT */}
+              <div className="p-4">
+                <h3 className="font-bold text-lg text-darkText">
+                  {item.title}
+                </h3>
 
-              <p className="text-gray-500 text-sm mt-1">
-                {new Date(item.createdAt).toLocaleDateString()}
-              </p>
+                <p className="text-gray-500 text-sm mt-1">
+                  {new Date(item.createdAt).toLocaleDateString()}
+                </p>
 
-              <p className="text-gray-600 mt-2 line-clamp-3">
-                {item.content}
-              </p>
+                <p className="text-gray-600 mt-2 line-clamp-3">
+                  {item.content}
+                </p>
 
-              {/* BUTTONS */}
-              <div className="flex justify-between mt-4">
+                {/* ACTIONS */}
+                <div className="flex justify-between mt-4">
+                  <button
+                    className="bg-primary text-white px-3 py-1 rounded hover:bg-blue-600"
+                    onClick={() => navigate(`/admin/news/${item._id}`)}
+                  >
+                    See Details
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(item._id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
+
                 <button
-                  className="bg-primary text-white px-3 py-1 rounded hover:bg-blue-600"
-                  onClick={() => navigate(`/admin/news/${item._id}`)}
+                  onClick={() => handleEdit(item)}
+                  className="mt-2 text-sm text-orange-500 hover:underline"
                 >
-                  See Details
-                </button>
-
-                <button
-                  onClick={() => handleDelete(item._id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                >
-                  Delete
+                  Edit
                 </button>
               </div>
-
-              {/* EDIT */}
-              <button
-                onClick={() => handleEdit(item)}
-                className="mt-2 text-sm text-orange-500 hover:underline"
-              >
-                Edit
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

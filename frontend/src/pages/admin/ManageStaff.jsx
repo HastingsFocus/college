@@ -13,14 +13,19 @@ function ManageStaff() {
   });
   const [file, setFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // 🔥 FETCH STAFF
+  // ================= FETCH STAFF =================
   const fetchStaff = async () => {
     try {
+      setLoading(true);
       const res = await API.get("/staff");
       setStaffList(res.data);
     } catch (err) {
       console.error("Failed to fetch staff:", err);
+      toast.error("Failed to load staff");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,28 +33,29 @@ function ManageStaff() {
     fetchStaff();
   }, []);
 
-  // 🔥 HANDLE INPUT CHANGE
+  // ================= INPUT HANDLERS =================
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🔥 HANDLE FILE CHANGE
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  // 🔥 ADD / UPDATE STAFF
+  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    Object.keys(form).forEach((key) =>
-      formData.append(key, form[key])
-    );
+    Object.keys(form).forEach((key) => {
+      formData.append(key, form[key]);
+    });
 
     if (file) formData.append("image", file);
 
     try {
+      setLoading(true);
+
       if (editingId) {
         await API.put(`/staff/${editingId}`, formData, {
           headers: {
@@ -70,6 +76,7 @@ function ManageStaff() {
         toast.success("Staff added successfully!");
       }
 
+      // reset form
       setForm({
         name: "",
         department: "",
@@ -83,11 +90,13 @@ function ManageStaff() {
       fetchStaff();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to save staff.");
+      toast.error("Failed to save staff");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 🔥 EDIT STAFF
+  // ================= EDIT =================
   const handleEdit = (staff) => {
     setEditingId(staff._id);
     setForm({
@@ -99,7 +108,7 @@ function ManageStaff() {
     });
   };
 
-  // 🔥 DELETE STAFF
+  // ================= DELETE =================
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this staff?"))
       return;
@@ -115,7 +124,7 @@ function ManageStaff() {
       fetchStaff();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to delete staff.");
+      toast.error("Failed to delete staff");
     }
   };
 
@@ -192,72 +201,76 @@ function ManageStaff() {
         </div>
 
         <button
+          disabled={loading}
           type="submit"
-          className="mt-4 bg-primary text-white px-6 py-2 rounded hover:bg-blue-600 transition"
+          className="mt-4 bg-primary text-white px-6 py-2 rounded hover:bg-blue-600 transition disabled:opacity-50"
         >
-          {editingId ? "Update Staff" : "Add Staff"}
+          {loading
+            ? "Processing..."
+            : editingId
+            ? "Update Staff"
+            : "Add Staff"}
         </button>
       </form>
 
       {/* TABLE */}
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-xl shadow-md">
-          <thead>
-            <tr className="bg-gray-200 text-left">
-              <th className="py-2 px-4">Name</th>
-              <th className="py-2 px-4">Department</th>
-              <th className="py-2 px-4">Position</th>
-              <th className="py-2 px-4">Email</th>
-              <th className="py-2 px-4">Education</th>
-              <th className="py-2 px-4">Image</th>
-              <th className="py-2 px-4">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {staffList.map((staff) => (
-              <tr
-                key={staff._id}
-                className="border-b hover:bg-gray-50"
-              >
-                <td className="py-2 px-4">{staff.name}</td>
-                <td className="py-2 px-4">{staff.department}</td>
-                <td className="py-2 px-4">{staff.position}</td>
-                <td className="py-2 px-4">{staff.email}</td>
-                <td className="py-2 px-4">
-                  {staff.educationBackground}
-                </td>
-
-                {/* 🔥 CLOUDINARY IMAGE FIX */}
-                <td className="py-2 px-4">
-                  {staff.image && (
-                    <img
-                      src={staff.image}
-                      alt={staff.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                  )}
-                </td>
-
-                <td className="py-2 px-4 space-x-2">
-                  <button
-                    onClick={() => handleEdit(staff)}
-                    className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 transition"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(staff._id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-                  >
-                    Delete
-                  </button>
-                </td>
+        {loading && staffList.length === 0 ? (
+          <p className="text-gray-500">Loading staff...</p>
+        ) : (
+          <table className="min-w-full bg-white rounded-xl shadow-md">
+            <thead>
+              <tr className="bg-gray-200 text-left">
+                <th className="py-2 px-4">Name</th>
+                <th className="py-2 px-4">Department</th>
+                <th className="py-2 px-4">Position</th>
+                <th className="py-2 px-4">Email</th>
+                <th className="py-2 px-4">Education</th>
+                <th className="py-2 px-4">Image</th>
+                <th className="py-2 px-4">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {staffList.map((staff) => (
+                <tr key={staff._id} className="border-b hover:bg-gray-50">
+                  <td className="py-2 px-4">{staff.name}</td>
+                  <td className="py-2 px-4">{staff.department}</td>
+                  <td className="py-2 px-4">{staff.position}</td>
+                  <td className="py-2 px-4">{staff.email}</td>
+                  <td className="py-2 px-4">{staff.educationBackground}</td>
+
+                  {/* CLOUDINARY IMAGE */}
+                  <td className="py-2 px-4">
+                    {staff.image && (
+                      <img
+                        src={staff.image}
+                        alt={staff.name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    )}
+                  </td>
+
+                  <td className="py-2 px-4 space-x-2">
+                    <button
+                      onClick={() => handleEdit(staff)}
+                      className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 transition"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(staff._id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
