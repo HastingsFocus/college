@@ -2,27 +2,48 @@ const News = require("../models/News");
 const cloudinary = require("../config/cloudinary");
 
 // =======================
+// HELPER: Extract Cloudinary public_id safely
+// =======================
+const getPublicId = (url) => {
+  if (!url) return null;
+
+  try {
+    const parts = url.split("/upload/");
+    if (parts.length < 2) return null;
+
+    const afterUpload = parts[1];
+    const withoutVersion = afterUpload.replace(/^v\d+\//, "");
+    const publicId = withoutVersion.split(".")[0];
+
+    return publicId;
+  } catch (err) {
+    console.error("Failed to extract public_id:", err.message);
+    return null;
+  }
+};
+
+// =======================
 // ADD NEWS
 // =======================
 const addNews = async (req, res) => {
   try {
+    const { title, content } = req.body;
+
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    const { title, content } = req.body;
-
     if (!title || !content) {
-      return res.status(400).json({ message: "Title and content are required" });
+      return res.status(400).json({
+        message: "Title and content are required",
+      });
     }
 
-    const newsData = {
+    const newsItem = await News.create({
       title,
       content,
       author: req.admin ? req.admin.email : "admin",
-      image: req.file ? req.file.path : "", // ✅ Cloudinary URL
-    };
-
-    const newsItem = await News.create(newsData);
+      image: req.file ? req.file.path : "",
+    });
 
     res.status(201).json(newsItem);
   } catch (error) {
@@ -42,7 +63,7 @@ const getNews = async (req, res) => {
 
     res.json(news);
   } catch (error) {
-    console.error(error);
+    console.error("GET NEWS ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -60,7 +81,7 @@ const getNewsById = async (req, res) => {
 
     res.json(news);
   } catch (error) {
-    console.error(error);
+    console.error("GET NEWS BY ID ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -81,23 +102,30 @@ const updateNews = async (req, res) => {
     if (title) news.title = title;
     if (content) news.content = content;
 
-    // 🔥 DELETE OLD IMAGE FROM CLOUDINARY
+    // =======================
+    // REPLACE IMAGE (CLOUDINARY SAFE)
+    // =======================
     if (req.file) {
       if (news.image) {
-        const publicId = news.image.split("/").pop().split(".")[0];
+        const publicId = getPublicId(news.image);
 
-        await cloudinary.uploader.destroy(`college-images/${publicId}`);
+        if (publicId) {
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.error("Cloudinary delete failed:", err.message);
+          }
+        }
       }
 
-      // ✅ SAVE NEW IMAGE
       news.image = req.file.path;
     }
 
-    await news.save();
+    const updated = await news.save();
 
-    res.json(news);
+    res.json(updated);
   } catch (error) {
-    console.error(error);
+    console.error("UPDATE NEWS ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -113,18 +141,26 @@ const deleteNews = async (req, res) => {
       return res.status(404).json({ message: "News not found" });
     }
 
-    // 🔥 DELETE IMAGE FROM CLOUDINARY
+    // =======================
+    // DELETE IMAGE FROM CLOUDINARY
+    // =======================
     if (news.image) {
-      const publicId = news.image.split("/").pop().split(".")[0];
+      const publicId = getPublicId(news.image);
 
-      await cloudinary.uploader.destroy(`college-images/${publicId}`);
+      if (publicId) {
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error("Cloudinary delete failed:", err.message);
+        }
+      }
     }
 
     await News.findByIdAndDelete(req.params.id);
 
     res.json({ message: "News deleted successfully" });
   } catch (error) {
-    console.error(error);
+    console.error("DELETE NEWS ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

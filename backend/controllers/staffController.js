@@ -2,6 +2,27 @@ const Staff = require("../models/Staff");
 const cloudinary = require("../config/cloudinary");
 
 // =======================
+// SAFE Cloudinary public_id extractor
+// =======================
+const getPublicId = (url) => {
+  if (!url) return null;
+
+  try {
+    const parts = url.split("/upload/");
+    if (parts.length < 2) return null;
+
+    const afterUpload = parts[1];
+    const withoutVersion = afterUpload.replace(/^v\d+\//, "");
+    const publicId = withoutVersion.split(".")[0];
+
+    return publicId;
+  } catch (err) {
+    console.error("public_id extraction error:", err.message);
+    return null;
+  }
+};
+
+// =======================
 // GET all staff (public)
 // =======================
 const getStaff = async (req, res) => {
@@ -9,12 +30,13 @@ const getStaff = async (req, res) => {
     const staff = await Staff.find();
     res.json(staff);
   } catch (error) {
+    console.error("GET STAFF ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 // =======================
-// GET single staff by ID
+// GET single staff
 // =======================
 const getStaffById = async (req, res) => {
   try {
@@ -26,6 +48,7 @@ const getStaffById = async (req, res) => {
 
     res.json(staff);
   } catch (error) {
+    console.error("GET STAFF BY ID ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -50,11 +73,12 @@ const addStaff = async (req, res) => {
       position,
       email,
       educationBackground,
-      image: req.file ? req.file.path : "", // ✅ Cloudinary URL
+      image: req.file ? req.file.path : "",
     });
 
     res.status(201).json(staff);
   } catch (error) {
+    console.error("ADD STAFF ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -80,21 +104,30 @@ const updateStaff = async (req, res) => {
     staff.educationBackground =
       educationBackground || staff.educationBackground;
 
-    // 🔥 UPDATE IMAGE (Cloudinary)
+    // =======================
+    // IMAGE UPDATE (CLOUDINARY SAFE)
+    // =======================
     if (req.file) {
       if (staff.image) {
-        const publicId = staff.image.split("/").pop().split(".")[0];
+        const publicId = getPublicId(staff.image);
 
-        await cloudinary.uploader.destroy(`college-images/${publicId}`);
+        if (publicId) {
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.error("Cloudinary delete error:", err.message);
+          }
+        }
       }
 
-      staff.image = req.file.path; // ✅ new Cloudinary image
+      staff.image = req.file.path;
     }
 
-    const updatedStaff = await staff.save();
+    const updated = await staff.save();
 
-    res.json(updatedStaff);
+    res.json(updated);
   } catch (error) {
+    console.error("UPDATE STAFF ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -110,17 +143,26 @@ const deleteStaff = async (req, res) => {
       return res.status(404).json({ message: "Staff not found" });
     }
 
-    // 🔥 DELETE IMAGE FROM CLOUDINARY
+    // =======================
+    // DELETE CLOUDINARY IMAGE
+    // =======================
     if (staff.image) {
-      const publicId = staff.image.split("/").pop().split(".")[0];
+      const publicId = getPublicId(staff.image);
 
-      await cloudinary.uploader.destroy(`college-images/${publicId}`);
+      if (publicId) {
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error("Cloudinary delete error:", err.message);
+        }
+      }
     }
 
-    await staff.deleteOne();
+    await Staff.findByIdAndDelete(req.params.id);
 
     res.json({ message: "Staff deleted successfully" });
   } catch (error) {
+    console.error("DELETE STAFF ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
