@@ -20,11 +20,23 @@ router.get('/', getStaff);
 router.get('/:id', getStaffById);
 
 // ======================
-// ADMIN ROUTES (WITH IMAGE UPLOAD)
+// ADMIN ROUTES (CLOUDINARY UPLOAD)
 // ======================
-router.post('/', protect, adminOnly, upload.single('image'), addStaff);
+router.post(
+  '/',
+  protect,
+  adminOnly,
+  upload.single('image'),
+  addStaff
+);
 
-router.put('/:id', protect, adminOnly, upload.single('image'), updateStaff);
+router.put(
+  '/:id',
+  protect,
+  adminOnly,
+  upload.single('image'),
+  updateStaff
+);
 
 router.delete('/:id', protect, adminOnly, deleteStaff);
 

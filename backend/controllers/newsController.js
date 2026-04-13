@@ -1,76 +1,26 @@
 const News = require("../models/News");
-const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
-
-// =======================
-// Ensure uploads folder exists
-// =======================
-const uploadDir = path.join(__dirname, "../uploads");
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// =======================
-// Multer config
-// =======================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir); // ✅ FIXED (removed /news)
-  },
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() +
-      "-" +
-      Math.round(Math.random() * 1e9) +
-      path.extname(file.originalname);
-
-    cb(null, uniqueName);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowed = /jpeg|jpg|png|gif/;
-
-  const extOk = allowed.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-  const mimeOk = allowed.test(file.mimetype);
-
-  if (extOk && mimeOk) cb(null, true);
-  else cb(new Error("Only image files allowed"));
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },
-}).single("image");
+const cloudinary = require("../config/cloudinary");
 
 // =======================
 // ADD NEWS
 // =======================
 const addNews = async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
     const { title, content } = req.body;
 
     if (!title || !content) {
-      return res
-        .status(400)
-        .json({ message: "Title and content are required" });
+      return res.status(400).json({ message: "Title and content are required" });
     }
 
     const newsData = {
       title,
       content,
       author: req.admin ? req.admin.email : "admin",
+      image: req.file ? req.file.path : "", // ✅ Cloudinary URL
     };
-
-    // ✅ FIXED IMAGE PATH
-    if (req.file) {
-      newsData.image = `/uploads/${req.file.filename}`;
-    }
 
     const newsItem = await News.create(newsData);
 
@@ -131,19 +81,16 @@ const updateNews = async (req, res) => {
     if (title) news.title = title;
     if (content) news.content = content;
 
-    // IMAGE UPDATE
+    // 🔥 DELETE OLD IMAGE FROM CLOUDINARY
     if (req.file) {
-      // delete old image
       if (news.image) {
-        const oldImagePath = path.join(__dirname, "..", news.image);
+        const publicId = news.image.split("/").pop().split(".")[0];
 
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
+        await cloudinary.uploader.destroy(`college-images/${publicId}`);
       }
 
-      // ✅ FIXED IMAGE PATH
-      news.image = `/uploads/${req.file.filename}`;
+      // ✅ SAVE NEW IMAGE
+      news.image = req.file.path;
     }
 
     await news.save();
@@ -166,13 +113,11 @@ const deleteNews = async (req, res) => {
       return res.status(404).json({ message: "News not found" });
     }
 
-    // DELETE IMAGE
+    // 🔥 DELETE IMAGE FROM CLOUDINARY
     if (news.image) {
-      const imagePath = path.join(__dirname, "..", news.image);
+      const publicId = news.image.split("/").pop().split(".")[0];
 
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
+      await cloudinary.uploader.destroy(`college-images/${publicId}`);
     }
 
     await News.findByIdAndDelete(req.params.id);
@@ -190,5 +135,4 @@ module.exports = {
   getNewsById,
   updateNews,
   deleteNews,
-  upload,
 };

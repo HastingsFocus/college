@@ -10,8 +10,6 @@ function ManageNews() {
   const [file, setFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
 
-  const BASE_URL = "https://college-glmq.onrender.com"; // 🔥 IMPORTANT for images
-
   // Fetch news
   const fetchNews = async () => {
     try {
@@ -90,26 +88,22 @@ function ManageNews() {
 
   // Delete
   const handleDelete = async (id) => {
-  if (!window.confirm("Delete this news?")) return;
+    if (!window.confirm("Delete this news?")) return;
 
-  try {
-    console.log("Deleting ID:", id);
+    try {
+      await API.delete(`/news/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
-    const res = await API.delete(`/news/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-
-    console.log("DELETE RESPONSE:", res.data);
-
-    toast.success("Deleted successfully");
-    fetchNews();
-  } catch (err) {
-    console.error("DELETE ERROR:", err.response?.data || err.message);
-    toast.error("Failed to delete");
-  }
-};
+      toast.success("Deleted successfully");
+      fetchNews();
+    } catch (err) {
+      console.error("DELETE ERROR:", err.response?.data || err.message);
+      toast.error("Failed to delete");
+    }
+  };
 
   return (
     <div className="p-6">
@@ -162,10 +156,10 @@ function ManageNews() {
             key={item._id}
             className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
           >
-            {/* IMAGE */}
+            {/* IMAGE (CLOUDINARY FIX 🔥) */}
             {item.image && (
               <img
-                src={`${BASE_URL}${item.image}`}
+                src={item.image}   // ✅ DIRECT CLOUDINARY URL
                 alt={item.title}
                 className="w-full h-48 object-cover"
               />
@@ -188,11 +182,11 @@ function ManageNews() {
               {/* BUTTONS */}
               <div className="flex justify-between mt-4">
                 <button
-                    className="bg-primary text-white px-3 py-1 rounded hover:bg-blue-600"
-                    onClick={() => navigate(`/admin/news/${item._id}`)}
-                  >
-                    See Details
-                  </button>
+                  className="bg-primary text-white px-3 py-1 rounded hover:bg-blue-600"
+                  onClick={() => navigate(`/admin/news/${item._id}`)}
+                >
+                  See Details
+                </button>
 
                 <button
                   onClick={() => handleDelete(item._id)}
@@ -202,7 +196,7 @@ function ManageNews() {
                 </button>
               </div>
 
-              {/* OPTIONAL EDIT */}
+              {/* EDIT */}
               <button
                 onClick={() => handleEdit(item)}
                 className="mt-2 text-sm text-orange-500 hover:underline"

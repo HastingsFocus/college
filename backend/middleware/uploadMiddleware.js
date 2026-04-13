@@ -1,47 +1,41 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../config/cloudinary");
 
 // =======================
-// Ensure uploads folder exists (NO /news)
+// CLOUDINARY STORAGE
 // =======================
-const uploadPath = path.join(__dirname, "../uploads");
-
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
-
-// =======================
-// Storage config
-// =======================
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadPath); // ✅ FIXED (uploads only)
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + path.extname(file.originalname);
-    cb(null, uniqueName);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "college-images",
+    allowed_formats: ["jpg", "jpeg", "png"],
+    transformation: [{ width: 800, height: 800, crop: "limit" }],
   },
 });
 
 // =======================
-// File filter (images only)
+// FILE FILTER
 // =======================
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpg|jpeg|png/;
 
-  const ext = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
+  const extOk = allowedTypes.test(file.originalname.toLowerCase());
+  const mimeOk = allowedTypes.test(file.mimetype);
 
-  if (ext) {
+  if (extOk && mimeOk) {
     cb(null, true);
   } else {
-    cb(new Error("Only images are allowed"));
+    cb(new Error("Only JPG, JPEG, PNG files are allowed"));
   }
 };
 
 // =======================
-// Export multer
+// MULTER INSTANCE
 // =======================
-module.exports = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+});
+
+module.exports = upload;

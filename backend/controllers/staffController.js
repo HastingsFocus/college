@@ -1,6 +1,5 @@
 const Staff = require("../models/Staff");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("../config/cloudinary");
 
 // =======================
 // GET all staff (public)
@@ -45,15 +44,13 @@ const addStaff = async (req, res) => {
       return res.status(400).json({ message: "Staff already exists" });
     }
 
-    const image = req.file ? `/uploads/${req.file.filename}` : "";
-
     const staff = await Staff.create({
       name,
       department,
       position,
       email,
       educationBackground,
-      image,
+      image: req.file ? req.file.path : "", // ✅ Cloudinary URL
     });
 
     res.status(201).json(staff);
@@ -83,19 +80,15 @@ const updateStaff = async (req, res) => {
     staff.educationBackground =
       educationBackground || staff.educationBackground;
 
-    // =======================
-    // IMAGE UPDATE (with delete old)
-    // =======================
+    // 🔥 UPDATE IMAGE (Cloudinary)
     if (req.file) {
       if (staff.image) {
-        const oldImagePath = path.join(__dirname, "..", staff.image);
+        const publicId = staff.image.split("/").pop().split(".")[0];
 
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
+        await cloudinary.uploader.destroy(`college-images/${publicId}`);
       }
 
-      staff.image = `/uploads/${req.file.filename}`;
+      staff.image = req.file.path; // ✅ new Cloudinary image
     }
 
     const updatedStaff = await staff.save();
@@ -117,15 +110,11 @@ const deleteStaff = async (req, res) => {
       return res.status(404).json({ message: "Staff not found" });
     }
 
-    // =======================
-    // DELETE IMAGE FROM STORAGE
-    // =======================
+    // 🔥 DELETE IMAGE FROM CLOUDINARY
     if (staff.image) {
-      const imagePath = path.join(__dirname, "..", staff.image);
+      const publicId = staff.image.split("/").pop().split(".")[0];
 
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
+      await cloudinary.uploader.destroy(`college-images/${publicId}`);
     }
 
     await staff.deleteOne();

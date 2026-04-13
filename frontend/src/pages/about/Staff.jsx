@@ -4,9 +4,6 @@ import API from "../../services/api";
 function Staff() {
   const [staffList, setStaffList] = useState([]);
 
-  // ✅ FIXED (removed /api)
-  const BASE_URL = "https://college-glmq.onrender.com";
-
   useEffect(() => {
     const fetchStaff = async () => {
       try {
@@ -16,12 +13,16 @@ function Staff() {
         console.error("Failed to fetch staff:", err);
       }
     };
+
     fetchStaff();
   }, []);
 
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-6 text-center">Our Staff</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">
+        Our Staff
+      </h2>
+
       <p className="text-gray-700 mb-10 text-center max-w-3xl mx-auto">
         Our faculty consists of highly experienced healthcare professionals...
       </p>
@@ -32,10 +33,10 @@ function Staff() {
             key={staff._id}
             className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-2"
           >
-            {/* ✅ IMAGE */}
+            {/* 🔥 CLOUDINARY IMAGE FIX */}
             {staff.image && (
               <img
-                src={`${BASE_URL}${staff.image}`} // ✅ FIXED
+                src={staff.image}   // ✅ DIRECT CLOUDINARY URL
                 alt={staff.name}
                 className="w-full h-56 object-cover"
               />
@@ -44,7 +45,8 @@ function Staff() {
             {/* CONTENT */}
             <div className="p-6">
               <p className="text-lg font-bold mb-1">
-                <span className="font-semibold">Name:</span> {staff.name}
+                <span className="font-semibold">Name:</span>{" "}
+                {staff.name}
               </p>
 
               <p className="text-gray-700 mb-1">
@@ -63,7 +65,8 @@ function Staff() {
               </p>
 
               <p className="text-blue-600 font-medium">
-                <span className="font-semibold">Email:</span> {staff.email}
+                <span className="font-semibold">Email:</span>{" "}
+                {staff.email}
               </p>
             </div>
           </div>

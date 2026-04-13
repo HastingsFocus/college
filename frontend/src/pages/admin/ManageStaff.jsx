@@ -1,4 +1,3 @@
-// src/pages/admin/ManageStaff.jsx
 import { useEffect, useState } from "react";
 import API from "../../services/api";
 import { toast } from "react-hot-toast";
@@ -12,10 +11,8 @@ function ManageStaff() {
     email: "",
     educationBackground: "",
   });
-  const [file, setFile] = useState(null); // for image upload
-  const [editingId, setEditingId] = useState(null); // track editing staff
-
-  const BASE_URL = "https://college-glmq.onrender.com";
+  const [file, setFile] = useState(null);
+  const [editingId, setEditingId] = useState(null);
 
   // 🔥 FETCH STAFF
   const fetchStaff = async () => {
@@ -41,26 +38,38 @@ function ManageStaff() {
     setFile(e.target.files[0]);
   };
 
-  // 🔥 ADD OR UPDATE STAFF
+  // 🔥 ADD / UPDATE STAFF
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    Object.keys(form).forEach((key) => formData.append(key, form[key]));
+    Object.keys(form).forEach((key) =>
+      formData.append(key, form[key])
+    );
+
     if (file) formData.append("image", file);
 
     try {
       if (editingId) {
         await API.put(`/staff/${editingId}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
+
         toast.success("Staff updated successfully!");
       } else {
         await API.post("/staff", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
+
         toast.success("Staff added successfully!");
       }
+
       setForm({
         name: "",
         department: "",
@@ -68,6 +77,7 @@ function ManageStaff() {
         email: "",
         educationBackground: "",
       });
+
       setFile(null);
       setEditingId(null);
       fetchStaff();
@@ -91,10 +101,16 @@ function ManageStaff() {
 
   // 🔥 DELETE STAFF
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this staff?")) return;
+    if (!window.confirm("Are you sure you want to delete this staff?"))
+      return;
 
     try {
-      await API.delete(`/staff/${id}`);
+      await API.delete(`/staff/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
       toast.success("Staff deleted!");
       fetchStaff();
     } catch (err) {
@@ -107,7 +123,7 @@ function ManageStaff() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Manage Staff</h1>
 
-      {/* 🔥 ADD / EDIT FORM */}
+      {/* FORM */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-xl shadow-md mb-10"
@@ -126,6 +142,7 @@ function ManageStaff() {
             className="border p-2 rounded"
             required
           />
+
           <input
             type="text"
             name="department"
@@ -135,6 +152,7 @@ function ManageStaff() {
             className="border p-2 rounded"
             required
           />
+
           <input
             type="text"
             name="position"
@@ -144,6 +162,7 @@ function ManageStaff() {
             className="border p-2 rounded"
             required
           />
+
           <input
             type="email"
             name="email"
@@ -153,6 +172,7 @@ function ManageStaff() {
             className="border p-2 rounded"
             required
           />
+
           <input
             type="text"
             name="educationBackground"
@@ -162,6 +182,7 @@ function ManageStaff() {
             className="border p-2 rounded col-span-2"
             required
           />
+
           <input
             type="file"
             onChange={handleFileChange}
@@ -178,7 +199,7 @@ function ManageStaff() {
         </button>
       </form>
 
-      {/* 🔥 STAFF TABLE */}
+      {/* TABLE */}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white rounded-xl shadow-md">
           <thead>
@@ -192,23 +213,32 @@ function ManageStaff() {
               <th className="py-2 px-4">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {staffList.map((staff) => (
-              <tr key={staff._id} className="border-b hover:bg-gray-50">
+              <tr
+                key={staff._id}
+                className="border-b hover:bg-gray-50"
+              >
                 <td className="py-2 px-4">{staff.name}</td>
                 <td className="py-2 px-4">{staff.department}</td>
                 <td className="py-2 px-4">{staff.position}</td>
                 <td className="py-2 px-4">{staff.email}</td>
-                <td className="py-2 px-4">{staff.educationBackground}</td>
+                <td className="py-2 px-4">
+                  {staff.educationBackground}
+                </td>
+
+                {/* 🔥 CLOUDINARY IMAGE FIX */}
                 <td className="py-2 px-4">
                   {staff.image && (
                     <img
-                      src={`${BASE_URL}${staff.image}`}
+                      src={staff.image}
                       alt={staff.name}
                       className="w-16 h-16 object-cover rounded"
                     />
                   )}
                 </td>
+
                 <td className="py-2 px-4 space-x-2">
                   <button
                     onClick={() => handleEdit(staff)}
@@ -216,6 +246,7 @@ function ManageStaff() {
                   >
                     Edit
                   </button>
+
                   <button
                     onClick={() => handleDelete(staff._id)}
                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"

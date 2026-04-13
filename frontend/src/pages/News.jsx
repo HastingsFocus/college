@@ -6,8 +6,6 @@ function News() {
   const [news, setNews] = useState([]);
   const navigate = useNavigate();
 
-  const BASE_URL = "https://college-glmq.onrender.com";
-
   const fetchNews = async () => {
     try {
       const res = await API.get("/news");
@@ -31,10 +29,10 @@ function News() {
             key={item._id}
             className="bg-white rounded-xl shadow hover:shadow-lg transition"
           >
-            {/* ✅ IMAGE */}
+            {/* ✅ CLOUDINARY IMAGE FIX */}
             {item.image && (
               <img
-                src={`${BASE_URL}${item.image}`} // ✅ FIXED HERE
+                src={item.image}   // 🔥 DIRECT CLOUDINARY URL
                 alt={item.title}
                 className="w-full h-48 object-cover rounded-t-xl"
               />
