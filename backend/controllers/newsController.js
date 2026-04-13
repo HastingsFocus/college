@@ -6,7 +6,7 @@ const multer = require("multer");
 // =======================
 // Ensure uploads folder exists
 // =======================
-const uploadDir = path.join(__dirname, "../uploads/news");
+const uploadDir = path.join(__dirname, "../uploads");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -17,11 +17,14 @@ if (!fs.existsSync(uploadDir)) {
 // =======================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDir);
+    cb(null, uploadDir); // ✅ FIXED (removed /news)
   },
   filename: (req, file, cb) => {
     const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
+      Date.now() +
+      "-" +
+      Math.round(Math.random() * 1e9) +
+      path.extname(file.originalname);
 
     cb(null, uniqueName);
   },
@@ -30,7 +33,9 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const allowed = /jpeg|jpg|png|gif/;
 
-  const extOk = allowed.test(path.extname(file.originalname).toLowerCase());
+  const extOk = allowed.test(
+    path.extname(file.originalname).toLowerCase()
+  );
   const mimeOk = allowed.test(file.mimetype);
 
   if (extOk && mimeOk) cb(null, true);
@@ -51,17 +56,20 @@ const addNews = async (req, res) => {
     const { title, content } = req.body;
 
     if (!title || !content) {
-      return res.status(400).json({ message: "Title and content are required" });
+      return res
+        .status(400)
+        .json({ message: "Title and content are required" });
     }
 
     const newsData = {
       title,
       content,
-      author: req.admin ? req.admin.email : "admin", // ✅ FIXED HERE
+      author: req.admin ? req.admin.email : "admin",
     };
 
+    // ✅ FIXED IMAGE PATH
     if (req.file) {
-      newsData.image = `/uploads/news/${req.file.filename}`;
+      newsData.image = `/uploads/${req.file.filename}`;
     }
 
     const newsItem = await News.create(newsData);
@@ -125,14 +133,17 @@ const updateNews = async (req, res) => {
 
     // IMAGE UPDATE
     if (req.file) {
+      // delete old image
       if (news.image) {
         const oldImagePath = path.join(__dirname, "..", news.image);
+
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
       }
 
-      news.image = `/uploads/news/${req.file.filename}`;
+      // ✅ FIXED IMAGE PATH
+      news.image = `/uploads/${req.file.filename}`;
     }
 
     await news.save();

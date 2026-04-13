@@ -10,7 +10,7 @@ function ManageNews() {
   const [file, setFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
 
-  const BASE_URL = "http://localhost:5000"; // 🔥 IMPORTANT for images
+  const BASE_URL = "https://college-glmq.onrender.com"; // 🔥 IMPORTANT for images
 
   // Fetch news
   const fetchNews = async () => {

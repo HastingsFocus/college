@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -7,11 +6,11 @@ function News() {
   const [news, setNews] = useState([]);
   const navigate = useNavigate();
 
-  const BASE_URL = "http://localhost:5000";
+  const BASE_URL = "https://college-glmq.onrender.com";
 
   const fetchNews = async () => {
     try {
-      const res = await API.get("/news"); // 🔥 public API
+      const res = await API.get("/news");
       setNews(res.data);
     } catch (err) {
       console.error(err);
@@ -32,10 +31,10 @@ function News() {
             key={item._id}
             className="bg-white rounded-xl shadow hover:shadow-lg transition"
           >
-            {/* IMAGE */}
+            {/* ✅ IMAGE */}
             {item.image && (
               <img
-                src={`${BASE_URL}${item.image}`}
+                src={`${BASE_URL}${item.image}`} // ✅ FIXED HERE
                 alt={item.title}
                 className="w-full h-48 object-cover rounded-t-xl"
               />
@@ -68,4 +67,3 @@ function News() {
 }
 
 export default News;
-

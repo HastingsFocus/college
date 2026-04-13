@@ -15,7 +15,7 @@ function ManageStaff() {
   const [file, setFile] = useState(null); // for image upload
   const [editingId, setEditingId] = useState(null); // track editing staff
 
-  const BASE_URL = "http://localhost:5000";
+  const BASE_URL = "https://college-glmq.onrender.com";
 
   // 🔥 FETCH STAFF
   const fetchStaff = async () => {

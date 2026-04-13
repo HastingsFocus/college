@@ -8,11 +8,14 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// 🔥 VERY IMPORTANT: Serve uploaded images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// ================= ROUTES =================
 const adminRoutes = require("./routes/adminRoutes");
 const programRoutes = require("./routes/programRoutes");
 const newsRoutes = require("./routes/newsRoutes");
@@ -33,10 +36,7 @@ app.use("/api/pages", pageRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/staff", staffRoutes);
 
-// Static uploads
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// Connect DB + start server
+// ================= START SERVER =================
 const startServer = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);

@@ -230,9 +230,14 @@ function Navbar() {
             Contact Us
           </NavLink>
 
-          <button className="bg-accent text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:bg-primary hover:scale-105 active:scale-95">
-            Apply
-          </button>
+          <button
+  onClick={() =>
+    window.open("https://onlineapplicationsite.netlify.app/", "_blank")
+  }
+  className="bg-accent text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:bg-primary hover:scale-105 active:scale-95"
+>
+  Apply
+</button>
         </div>
 
         {/* MOBILE ICON */}
@@ -288,7 +293,7 @@ function Navbar() {
 
           <button
   onClick={() =>
-    window.open("https://onlinecollegeapplication.netlify.app/", "_blank")
+    window.open("https://onlineapplicationsite.netlify.app/", "_blank")
   }
   className="bg-accent text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:bg-primary hover:scale-105 active:scale-95"
 >

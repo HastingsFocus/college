@@ -1,10 +1,11 @@
-// src/pages/about/Staff.jsx
 import { useEffect, useState } from "react";
 import API from "../../services/api";
 
 function Staff() {
   const [staffList, setStaffList] = useState([]);
-  const BASE_URL = "http://localhost:5000";
+
+  // ✅ FIXED (removed /api)
+  const BASE_URL = "https://college-glmq.onrender.com";
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -31,34 +32,40 @@ function Staff() {
             key={staff._id}
             className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-2"
           >
+            {/* ✅ IMAGE */}
             {staff.image && (
               <img
-                src={`${BASE_URL}${staff.image}`}
+                src={`${BASE_URL}${staff.image}`} // ✅ FIXED
                 alt={staff.name}
                 className="w-full h-56 object-cover"
               />
             )}
+
+            {/* CONTENT */}
             <div className="p-6">
-  <p className="text-lg font-bold mb-1">
-    <span className="font-semibold">Name:</span> {staff.name}
-  </p>
+              <p className="text-lg font-bold mb-1">
+                <span className="font-semibold">Name:</span> {staff.name}
+              </p>
 
-  <p className="text-gray-700 mb-1">
-    <span className="font-semibold">Position:</span> {staff.position}
-  </p>
+              <p className="text-gray-700 mb-1">
+                <span className="font-semibold">Position:</span>{" "}
+                {staff.position}
+              </p>
 
-  <p className="text-gray-700 mb-2">
-    <span className="font-semibold">Department:</span> {staff.department}
-  </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Department:</span>{" "}
+                {staff.department}
+              </p>
 
-  <p className="text-gray-700 mb-2">
-    <span className="font-semibold">Education:</span> {staff.educationBackground}
-  </p>
+              <p className="text-gray-700 mb-2">
+                <span className="font-semibold">Education:</span>{" "}
+                {staff.educationBackground}
+              </p>
 
-  <p className="text-blue-600 font-medium">
-    <span className="font-semibold">Email:</span> {staff.email}
-  </p>
-</div>
+              <p className="text-blue-600 font-medium">
+                <span className="font-semibold">Email:</span> {staff.email}
+              </p>
+            </div>
           </div>
         ))}
       </div>
